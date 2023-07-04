@@ -94,4 +94,23 @@ class SpringReactiveMongoDbCrudApplicationTests {
                 .exchange()
                 .expectStatus().isOk();
     }
+
+    @Test
+    public void getProductBetweenRangeTest(){
+        Flux<ProductDto> productDtoFlux = Flux.just(new ProductDto("101", "mobile", 1,   10000),
+                new ProductDto("102", "Tv", 1,   50000));
+        when(productService.getProductInRange(5000,100000)).thenReturn(productDtoFlux);
+
+        Flux<ProductDto> responseBody = webTestClient.get().uri("/products/product-range?min=5000&max=100000")
+                .exchange()
+                .expectStatus().isOk()
+                .returnResult(ProductDto.class)
+                .getResponseBody();
+
+        StepVerifier.create(responseBody)
+                .expectSubscription()
+                .expectNext(new ProductDto("101", "mobile", 1,   10000))
+                .expectNext(new ProductDto("102", "Tv", 1,   50000))
+                .verifyComplete();
+    }
 }
